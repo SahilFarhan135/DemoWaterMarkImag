@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CAMERA=101;
     private String current_picture_path;
+    private String current_pic_path=null;
 
     LottieAnimationView camera;
     ImageView im;
@@ -66,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     FusedLocationProviderClient fusedLocationProviderClient;
     WatermarkText watermarkText;
     Uri imageUri;
+    String watermarkkk;
+    Boolean capture=false;
 
 
     @Override
@@ -74,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         camera=findViewById(R.id.camera);
-        im=findViewById(R.id.image);
+        im=findViewById(R.id.imagevieww);
         //locate=findViewById(R.id.location);
 
 
@@ -104,10 +107,11 @@ public class MainActivity extends AppCompatActivity {
             }
         //permission taken cared of
 
-        camera.setOnClickListener(new View.OnClickListener() {
+       /*camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String fileName="photo";
+
+               String fileName="photo";
                 File fileDirectory= getExternalFilesDir(Environment.DIRECTORY_PICTURES);
 
 
@@ -124,9 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-            }
-        });
-
+            */
 
 
 
@@ -150,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onLocationResult(final LocationResult locationResult) {
 
-                        Toast.makeText(MainActivity.this,"Loaction 1",Toast.LENGTH_LONG).show();
+                      //  Toast.makeText(MainActivity.this,"Loaction 1",Toast.LENGTH_LONG).show();
 
 
                         super.onLocationResult(locationResult);
@@ -174,6 +176,8 @@ public class MainActivity extends AppCompatActivity {
                                         String Addresss = addressList.get(0).getCountryName() + "\n"
                                                 + "\n" + " locality :-" + addressList.get(0).getLocality()
                                                 + "\n" + "AddressLine : -" + addressList.get(0).getAddressLine(0);
+                                        String Address1 =
+                                                  addressList.get(0).getLocality();
 
                                       //  Toast.makeText(MainActivity.this,"Loaction 1"+Addresss,Toast.LENGTH_LONG).show();
 
@@ -182,15 +186,14 @@ public class MainActivity extends AppCompatActivity {
                                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss");
                                         String format = simpleDateFormat.format(new Date());
                                       //  Log.d("MainActivity", "Current Timestamp: " + format);
-                                        Toast.makeText(MainActivity.this,format,Toast.LENGTH_LONG).show();
-                                        String str =Addresss +" "+ format;
+                                       // Toast.makeText(MainActivity.this,format,Toast.LENGTH_LONG).show();
 
-                                         watermarkText = new WatermarkText(str)
-                                                .setPositionX(0.4)
-                                                .setPositionY(0.5)
-                                                 .setTextSize(20)
+                                         watermarkText = new WatermarkText(format +" "+Address1)
+                                                .setPositionX(0.1)
+                                                .setPositionY(0.8)
+                                                 .setTextSize(11)
                                                 .setTextAlpha(400)
-                                                .setTextColor(Color.BLACK)
+                                                .setTextColor(Color.YELLOW)
                                                 .setTextShadow(0.1f, 1, 1, Color.BLACK);
 
 
@@ -208,6 +211,8 @@ public class MainActivity extends AppCompatActivity {
 
                 }, Looper.getMainLooper());
 
+        // location taken care of
+
 
 
 
@@ -216,22 +221,63 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+    public void captureImage(View view){
+        capture=true;
+        Intent ii=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        if(ii.resolveActivity(getPackageManager())!=null){
+            File imageFile1=null;
+            try {
+                imageFile1=getImageFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if(imageFile1!=null){
+                Uri  imageUri= FileProvider.getUriForFile(
+                        this,"com.example.owncar_demo.fileprovider",imageFile1);
+                ii.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
+                startActivityForResult(ii,REQUEST_CAMERA);
+
+            }
+
+        }
+
+    }
+
+    public void displayImage(View view){
+        if(capture==true) {
+
+            Intent ii = new Intent(MainActivity.this, ViewImage.class);
+            ii.putExtra("image_path", current_pic_path);
+            startActivity(ii);
+        }else{
+            Toast.makeText(getApplicationContext(),"Please First click the Image",Toast.LENGTH_LONG).show();
+        }
+
+    }
 
 
-    @Override
+    private File getImageFile( ) throws IOException {
+        String timestamp= new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageName1="jpg"+timestamp+"_";
+        File storageDir =getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+            File imageFile=File.createTempFile(imageName1,".jpg",storageDir);
+            current_pic_path=imageFile.getAbsolutePath();
+
+        return imageFile;
+    }
+
+
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode==REQUEST_CAMERA && resultCode==RESULT_OK){
-           Bitmap bitmap=(Bitmap)data.getExtras().get("data");
+          // Bitmap bitmap=(Bitmap)data.getExtras().get("data");
 
-         /* for high resolution image
+         // for high resolution image
+            Bitmap bitmap = BitmapFactory.decodeFile(current_pic_path);
 
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-            Bitmap bitmap = BitmapFactory.decodeFile(current_picture_path,bmOptions);
-          Bitmap bitmap=BitmapFactory.decodeFile(current_picture_path);
-           im.setImageBitmap(bitmap);
 
-          */
 
 
 
